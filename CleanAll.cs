@@ -42,7 +42,7 @@ namespace RadacodePlugin
         private readonly Package package;
 
         private readonly DTE dte;
-        private SolutionEvents solutionEvents;
+        private BuildEvents buildEvents;
         private IVsStatusbar statusbar;
 
         /// <summary>
@@ -63,8 +63,8 @@ namespace RadacodePlugin
 
             statusbar = Package.GetGlobalService(typeof(SVsStatusbar)) as IVsStatusbar;
 
-            solutionEvents = ((Events2)dte.Events).SolutionEvents;
-            solutionEvents.ProjectRemoved += SolutionEventsOnProjectRemoved;
+            buildEvents = dte.Events.BuildEvents;
+            buildEvents.OnBuildBegin += BuildEventsOnOnBuildBegin;
 
             OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService != null)
@@ -77,11 +77,17 @@ namespace RadacodePlugin
             }
         }
 
-        private void SolutionEventsOnProjectRemoved(Project project)
+        private void BuildEventsOnOnBuildBegin(vsBuildScope scope, vsBuildAction action)
         {
-            string path = project.FileName;
-            //DeleteDirectoryRecursive(Path.GetDirectoryName(path));
-            dte.Solution.AddFromFile(path);
+            foreach (Project p in dte.Solution.Projects)
+            {
+                try
+                {
+                    Configuration conf = p.ConfigurationManager.ActiveConfiguration;
+                    conf.Properties.Item("UseVSHostingProcess").Value = true;
+                }
+                catch { }
+            }
         }
 
         private void MenuItemOnBeforeQueryStatus(object sender, EventArgs eventArgs)
@@ -138,11 +144,13 @@ namespace RadacodePlugin
         {
             foreach (Project p in dte.Solution.Projects)
             {
-                Configuration conf = p.ConfigurationManager.ActiveConfiguration;
-                conf.Properties.Item("EnableASPDebugging").Value = false;
-                conf.Properties.Item("EnableASPXDebugging").Value = false;
-                conf.Properties.Item("EnableSQLServerDebugging").Value = false;
-                conf.Properties.Item("EnableUnmanagedDebugging").Value = false;
+                Configuration conf = null;
+                try
+                {
+                    conf = p.ConfigurationManager.ActiveConfiguration;
+                    conf.Properties.Item("UseVSHostingProcess").Value = false;
+                }
+                catch { }
 
                 DeleteDirectoryRecursive(Path.GetDirectoryName(p.FileName));
             }
