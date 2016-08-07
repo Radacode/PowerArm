@@ -23,8 +23,8 @@
     <ProjectGuid>{23D5EDBE-D34C-4E42-A88B-9950FC9F436B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>RadacodePlugin</RootNamespace>
-    <AssemblyName>RadacodePlugin</AssemblyName>
+    <RootNamespace>PowerArm.Extension</RootNamespace>
+    <AssemblyName>PowerArm.Extension</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
