@@ -5,19 +5,13 @@
 //------------------------------------------------------------------------------
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.Windows.Forms;
+using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using EnvDTE;
-using EnvDTE80;
 
-namespace RadacodePlugin
+namespace PowerArm.Extension
 {
     /// <summary>
     /// Command handler

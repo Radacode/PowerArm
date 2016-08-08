@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="RadacodePlugin.Андрей Снигур.dfe53eff-3010-46c9-a6cb-cc6442503d8d" Version="1.0" Language="en-US" Publisher="Андрей Снигур" />
-    <DisplayName>RadacodePlugin</DisplayName>
+    <Identity Id="RadacodePlugin.Андрей Снигур.dfe53eff-3010-46c9-a6cb-cc6442503d8d" Version="1.0" Language="en-US" Publisher="Radacode Inc." />
+    <DisplayName>PowerArm.Extension</DisplayName>
     <Description>Empty VSIX Project.</Description>
   </Metadata>
   <Installation>
