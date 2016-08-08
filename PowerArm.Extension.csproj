@@ -53,7 +53,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CleanAll.cs" />
-    <Compile Include="CleanAllPackage.cs" />
+    <Compile Include="PowerArmPackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -66,7 +66,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <VSCTCompile Include="CleanAllPackage.vsct">
+    <VSCTCompile Include="PowerArmPackage.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>

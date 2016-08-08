@@ -1,5 +1,5 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="CleanAllPackage.cs" company="Company">
+// <copyright file="PowerArmPackage.cs" company="Company">
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
@@ -33,19 +33,19 @@ namespace PowerArm.Extension
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution)]
-    [Guid(CleanAllPackage.PackageGuidString)]
+    [Guid(PowerArmPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class CleanAllPackage : Package
+    public sealed class PowerArmPackage : Package
     {
         /// <summary>
-        /// CleanAllPackage GUID string.
+        /// PowerArmPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "79717230-8601-4566-be1b-8c8831f92931";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CleanAll"/> class.
         /// </summary>
-        public CleanAllPackage()
+        public PowerArmPackage()
         {
             // Inside this method you can place any initialization code that does not require
             // any Visual Studio service because at this point the package object is created but
