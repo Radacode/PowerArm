@@ -1,5 +1,5 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="CleanAll.cs" company="Company">
+// <copyright file="CleanAll.cs" company="Radacode">
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace PowerArm.Extension
+namespace PowerArm.Extension.Commands
 {
     /// <summary>
     /// Command handler

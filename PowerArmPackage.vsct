@@ -63,12 +63,21 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidPowerArmPackageCmdSet" id="PowerArmId" priority="0x0100" type="Button">
+      <Button guid="guidPowerArmPackageCmdSet" id="CleanAllId" priority="0x0100" type="Button">
         <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Clean All</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidPowerArmPackageCmdSet" id="MapIISId" priority="0x0101" type="Button">
+        <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Map IIS Sites</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -92,7 +101,8 @@
     <GuidSymbol name="guidPowerArmPackageCmdSet" value="{3c281d67-fe51-41e1-b138-b4385425efc5}">
       <IDSymbol name="TopLevelMenu" value="0x1021"/>
       <IDSymbol name="SolutionMenuGroup" value="0x1020" />
-      <IDSymbol name="PowerArmId" value="0x0100" />
+      <IDSymbol name="CleanAllId" value="0x0100" />
+      <IDSymbol name="MapIISId" value="0x0101" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{f646a001-8248-4a8b-9ed6-e1e19b1f7885}" >

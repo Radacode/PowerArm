@@ -4,10 +4,14 @@
 // </copyright>
 //------------------------------------------------------------------------------
 
+using System;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using PowerArm.Extension.Commands;
 
 namespace PowerArm.Extension
 {
@@ -35,22 +39,21 @@ namespace PowerArm.Extension
     [ProvideAutoLoad(UIContextGuids80.NoSolution)]
     [Guid(PowerArmPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed class PowerArmPackage : Package
+    public sealed partial class PowerArmPackage : Package, IVsSolutionLoadManager
     {
         /// <summary>
         /// PowerArmPackage GUID string.
         /// </summary>
         public const string PackageGuidString = "79717230-8601-4566-be1b-8c8831f92931";
 
+        private uint _solutionEventsCoockie;
+
         /// <summary>
-        /// Initializes a new instance of the <see cref="CleanAll"/> class.
+        /// Initializes a new instance of the <see cref="PowerArm"/> class.
         /// </summary>
         public PowerArmPackage()
         {
-            // Inside this method you can place any initialization code that does not require
-            // any Visual Studio service because at this point the package object is created but
-            // not sited yet inside Visual Studio environment. The place to do all the other
-            // initialization is the Initialize method.
+            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
 
         #region Package Members
@@ -61,10 +64,29 @@ namespace PowerArm.Extension
         /// </summary>
         protected override void Initialize()
         {
+            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this);
+            MapLocalIIS.Initialize(this);
             base.Initialize();
+
+            var solution = GetService(typeof(SVsSolution)) as IVsSolution;
+            if (null != solution)
+            {
+                solution.AdviseSolutionEvents(this, out _solutionEventsCoockie);
+            }
         }
 
         #endregion
+
+        public int OnDisconnect()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public int OnBeforeOpenProject(ref Guid guidProjectID, ref Guid guidProjectType, string pszFileName,
+            IVsSolutionLoadManagerSupport pSLMgrSupport)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }
