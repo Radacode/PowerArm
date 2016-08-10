@@ -57,6 +57,8 @@
   <ItemGroup>
     <Compile Include="Commands\CleanAll.cs" />
     <Compile Include="Commands\MapLocalIIS.cs" />
+    <Compile Include="ElevationChecker.cs" />
+    <Compile Include="Guids.cs" />
     <Compile Include="PowerArmPackage.cs" />
     <Compile Include="PowerArmPackage.Events.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

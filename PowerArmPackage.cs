@@ -37,15 +37,10 @@ namespace PowerArm.Extension
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution)]
-    [Guid(PowerArmPackage.PackageGuidString)]
+    [Guid(Guids.PackageId)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed partial class PowerArmPackage : Package, IVsSolutionLoadManager
     {
-        /// <summary>
-        /// PowerArmPackage GUID string.
-        /// </summary>
-        public const string PackageGuidString = "79717230-8601-4566-be1b-8c8831f92931";
-
         private uint _solutionEventsCoockie;
 
         /// <summary>
