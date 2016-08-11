@@ -55,10 +55,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Commands\RestartAsAdmin.cs" />
     <Compile Include="Commands\CleanAll.cs" />
     <Compile Include="Commands\MapLocalIIS.cs" />
-    <Compile Include="ElevationChecker.cs" />
+    <Compile Include="Helpers\ArgumentParser.cs" />
+    <Compile Include="Helpers\ArgumentTokenCollection.cs" />
+    <Compile Include="Helpers\IArgumentToken.cs" />
+    <Compile Include="Helpers\StringExtension.cs" />
+    <Compile Include="Managers\ElevationChecker.cs" />
     <Compile Include="Guids.cs" />
+    <Compile Include="Managers\VisualStuioRestarter.cs" />
+    <Compile Include="MenuId.cs" />
     <Compile Include="PowerArmPackage.cs" />
     <Compile Include="PowerArmPackage.Events.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -77,12 +84,10 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-    <Content Include="index.html" />
     <Content Include="Resources\CleanAll.png" />
     <Content Include="Resources\CleanAllPackage.ico" />
     <Content Include="Resources\MapLocalIIS.png" />
     <Content Include="Resources\MapLocalIISPackage.ico" />
-    <Content Include="stylesheet.css" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

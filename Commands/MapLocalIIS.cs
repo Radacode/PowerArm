@@ -1,5 +1,5 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="MapLocalIIS.cs" company="Company">
+// <copyright file="MapLocalIIS.cs" company="Radacode">
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
@@ -27,12 +27,12 @@ namespace PowerArm.Extension.Commands
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0101;
+        public const int CommandId = 0x0300;
 
         /// <summary>
         /// Command menu group (command set GUID).
         /// </summary>
-        public static readonly Guid CommandSet = new Guid("3c281d67-fe51-41e1-b138-b4385425efc5");
+        public static readonly Guid CommandSet = Guids.PowerArmGroupGuid;
 
         /// <summary>
         /// VS Package that provides this command, not null.
@@ -40,9 +40,9 @@ namespace PowerArm.Extension.Commands
         private readonly Package package;
 
         private readonly DTE dte;
-        private BuildEvents buildEvents;
         private IVsStatusbar statusbar;
 
+        private string _mapLog;
 
         private bool _unloadedPresent;
 
@@ -64,9 +64,6 @@ namespace PowerArm.Extension.Commands
 
             statusbar = Package.GetGlobalService(typeof(SVsStatusbar)) as IVsStatusbar;
 
-            buildEvents = dte.Events.BuildEvents;
-            buildEvents.OnBuildBegin += BuildEventsOnOnBuildBegin;
-
             OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService != null)
             {
@@ -75,19 +72,6 @@ namespace PowerArm.Extension.Commands
                 menuItem.BeforeQueryStatus += MenuItemOnBeforeQueryStatus;
 
                 commandService.AddCommand(menuItem);
-            }
-        }
-
-        private void BuildEventsOnOnBuildBegin(vsBuildScope scope, vsBuildAction action)
-        {
-            foreach (Project p in dte.Solution.Projects)
-            {
-                try
-                {
-                    Configuration conf = p.ConfigurationManager.ActiveConfiguration;
-                    conf.Properties.Item("UseVSHostingProcess").Value = true;
-                }
-                catch { }
             }
         }
 
@@ -138,7 +122,6 @@ namespace PowerArm.Extension.Commands
 
             if (!_unloadedPresent)
             {
-                // Show a message box to prove we were here
                 VsShellUtilities.ShowMessageBox(
                     this.ServiceProvider,
                     message,
@@ -147,6 +130,8 @@ namespace PowerArm.Extension.Commands
                     OLEMSGBUTTON.OLEMSGBUTTON_OK,
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
             }
+
+            _mapLog = string.Empty;
 
             Window win = dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
             OutputWindow ow = win.Object as OutputWindow;
@@ -165,7 +150,22 @@ namespace PowerArm.Extension.Commands
 
             foreach (var error in result)
             {
-                this.ProcessErrorEntry(error);
+                try
+                {
+                    this.ProcessErrorEntry(error);
+                }
+                catch (Exception ex)
+                {
+                    VsShellUtilities.ShowMessageBox(
+                        this.ServiceProvider,
+                        "Log: " + Environment.NewLine + _mapLog 
+                        + Environment.NewLine + 
+                        "Error: " + Environment.NewLine + ex.Message,
+                        "Error during mapping of the site",
+                        OLEMSGICON.OLEMSGICON_INFO,
+                        OLEMSGBUTTON.OLEMSGBUTTON_OK,
+                        OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+                }
             }
         }
 
@@ -188,6 +188,8 @@ namespace PowerArm.Extension.Commands
                 Regex regexObj = new Regex(@"The Web Application Project (.+?) is configured to use IIS.");
                 String projectName = regexObj.Match(error).Groups[1].Value;
 
+                _mapLog = $"Parsed error successfully, parameters are {pathToProject}, {url}, {projectName}";
+
                 this.MapInIIS(pathToProject, url, projectName);
             }
         }
@@ -203,12 +205,53 @@ namespace PowerArm.Extension.Commands
             var site = iisManager.Sites.Add(projectName, uri.Scheme, $"*:{uri.Port}:{uri.DnsSafeHost}", Path.GetDirectoryName(pathToProject));
             iisManager.CommitChanges();
 
-            site.Start();
+            var count = 0;
 
-            using (StreamWriter w = File.AppendText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "drivers/etc/hosts")))
+            while (!iisManager.Sites.Any(s => s.Name == projectName) && count < 20)
             {
-                w.WriteLine($"{w.NewLine}127.0.0.1 {uri.DnsSafeHost}");
+                System.Threading.Thread.Sleep(100);
+                count++;
             }
+
+            _mapLog += Environment.NewLine + "Site added successfully.";
+
+            try
+            {
+                site.Start();
+                _mapLog += Environment.NewLine + "Site started";
+            }
+            catch (Exception ex)
+            {
+                _mapLog += Environment.NewLine + "Site could not be started; Try starting it manually.";
+            }
+
+            var hostsEntryExists = false;
+
+            using(var reader = new StringReader(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "drivers/etc/hosts")))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.Contains(" " + uri.DnsSafeHost))
+                    {
+                        hostsEntryExists = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hostsEntryExists)
+            {
+                using (
+                    StreamWriter w =
+                        File.AppendText(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),
+                            "drivers/etc/hosts")))
+                {
+                    w.WriteLine($"{w.NewLine}127.0.0.1 {uri.DnsSafeHost}");
+                }
+            }
+
+            _mapLog += Environment.NewLine + "hosts written.";
 
             this.ReloadProject(projectName);
         }
@@ -220,7 +263,11 @@ namespace PowerArm.Extension.Commands
             dte.Windows.Item(EnvDTE.Constants.vsWindowKindSolutionExplorer).Activate();
             ((DTE2)dte).ToolWindows.SolutionExplorer.GetItem(solutionName + @"\" + projectName).Select(vsUISelectionType.vsUISelectionTypeSelect);
 
+            _mapLog += Environment.NewLine + "About to run reload";
+
             dte.ExecuteCommand("Project.ReloadProject");
+
+            _mapLog += Environment.NewLine + "Poject reloaded";
         }
 
         private void CheckIfUnloadedFilesPresent()
@@ -236,7 +283,6 @@ namespace PowerArm.Extension.Commands
                     _unloadedPresent = true;
                     break;
                 }
-                    
             }
         }
 

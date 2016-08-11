@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace PowerArm.Extension
+namespace PowerArm.Extension.Managers
 {
+    //Courtesy of https://github.com/ilmax/vs-restart/
     internal static class ElevationChecker
     {
         public enum TokenInformation
@@ -62,7 +63,6 @@ namespace PowerArm.Extension
             {
                 if (isOpenProcToken)
                 {
-
                     TOKEN_ELEVATION te;
                     te.TokenIsElevated = 0;
 

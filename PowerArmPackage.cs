@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using PowerArm.Extension.Commands;
@@ -43,12 +45,38 @@ namespace PowerArm.Extension
     {
         private uint _solutionEventsCoockie;
 
+        private DteInitializer _dteInitializer;
+
+        public DTE DTE { get; private set; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PowerArm"/> class.
         /// </summary>
         public PowerArmPackage()
         {
             Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+        }
+
+        private void InitializeDTE()
+        {
+            try
+            {
+                DTE = (DTE)GetService(typeof(DTE));
+            }
+            catch (Exception)
+            {
+                DTE = null;
+            }
+
+            if (DTE == null)
+            {
+                IVsShell shellService = (IVsShell)this.GetService(typeof(IVsShell));
+                _dteInitializer = new DteInitializer(shellService, InitializeDTE);
+            }
+            else
+            {
+                _dteInitializer = null;
+            }
         }
 
         #region Package Members
@@ -62,7 +90,10 @@ namespace PowerArm.Extension
             Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this);
             MapLocalIIS.Initialize(this);
+            RestartAsAdmin.Initialize(this);
             base.Initialize();
+
+            InitializeDTE();
 
             var solution = GetService(typeof(SVsSolution)) as IVsSolution;
             if (null != solution)
@@ -75,13 +106,56 @@ namespace PowerArm.Extension
 
         public int OnDisconnect()
         {
-            throw new System.NotImplementedException();
+            return VSConstants.S_OK;
         }
 
         public int OnBeforeOpenProject(ref Guid guidProjectID, ref Guid guidProjectType, string pszFileName,
             IVsSolutionLoadManagerSupport pSLMgrSupport)
         {
-            throw new System.NotImplementedException();
+            return VSConstants.S_OK;
+        }
+    }
+
+    // Courtesy of http://www.mztools.com/articles/2013/MZ2013029.aspx
+    internal class DteInitializer : IVsShellPropertyEvents
+    {
+        private readonly IVsShell _shellService;
+        private uint _cookie;
+        private readonly Action _callback;
+
+        internal DteInitializer(IVsShell shellService, Action callback)
+        {
+            int hr;
+
+            _shellService = shellService;
+            _callback = callback;
+
+            // Set an event handler to detect when the IDE is fully initialized
+            hr = _shellService.AdviseShellPropertyChanges(this, out _cookie);
+
+            ErrorHandler.ThrowOnFailure(hr);
+        }
+
+        int IVsShellPropertyEvents.OnShellPropertyChange(int propid, object var)
+        {
+            if (propid == (int)__VSSPROPID.VSSPROPID_Zombie)
+            {
+                var isZombie = (bool)var;
+
+                if (!isZombie)
+                {
+                    // Release the event handler to detect when the IDE is fully initialized
+                    var hr = _shellService.UnadviseShellPropertyChanges(_cookie);
+
+                    ErrorHandler.ThrowOnFailure(hr);
+
+                    _cookie = 0;
+
+                    _callback();
+                }
+            }
+
+            return VSConstants.S_OK;
         }
     }
 }
