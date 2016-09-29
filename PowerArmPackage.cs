@@ -9,11 +9,13 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using PowerArm.Extension.Commands;
+using radacode.net.logger;
 
 namespace PowerArm.Extension
 {
@@ -46,6 +48,9 @@ namespace PowerArm.Extension
         private uint _solutionEventsCoockie;
 
         private DteInitializer _dteInitializer;
+        private ILogger _logger;
+        private string _loggerLogin = "6a702fdf-3416-42db-add2-a5fb3a6558eb";
+        private string _loggerPassword = "c{7aG(#t";
 
         public DTE DTE { get; private set; }
 
@@ -54,7 +59,9 @@ namespace PowerArm.Extension
         /// </summary>
         public PowerArmPackage()
         {
-            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
+            _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin);
+            
+            _logger.Log(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
 
         private void InitializeDTE()
@@ -87,10 +94,10 @@ namespace PowerArm.Extension
         /// </summary>
         protected override void Initialize()
         {
-            Trace.WriteLine(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
-            CleanAll.Initialize(this);
-            MapLocalIIS.Initialize(this);
-            RestartAsAdmin.Initialize(this);
+            _logger.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
+            CleanAll.Initialize(this, _logger);
+            MapLocalIIS.Initialize(this, _logger);
+            RestartAsAdmin.Initialize(this, _logger);
             base.Initialize();
 
             InitializeDTE();
@@ -100,6 +107,8 @@ namespace PowerArm.Extension
             {
                 solution.AdviseSolutionEvents(this, out _solutionEventsCoockie);
             }
+
+            _logger.Log("All initializations complete.");
         }
 
         #endregion

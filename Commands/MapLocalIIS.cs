@@ -15,6 +15,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.Administration;
+using radacode.net.logger;
 using Configuration = EnvDTE.Configuration;
 
 namespace PowerArm.Extension.Commands
@@ -46,13 +47,17 @@ namespace PowerArm.Extension.Commands
 
         private bool _unloadedPresent;
 
+        private ILogger _logger;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="MapLocalIIS"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private MapLocalIIS(Package package)
+        private MapLocalIIS(Package package, ILogger logger)
         {
+            _logger = logger;
+
             if (package == null)
             {
                 throw new ArgumentNullException("package");
@@ -99,9 +104,9 @@ namespace PowerArm.Extension.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)
+        public static void Initialize(Package package, ILogger logger)
         {
-            Instance = new MapLocalIIS(package);
+            Instance = new MapLocalIIS(package, logger);
         }
 
         /// <summary>
@@ -113,11 +118,16 @@ namespace PowerArm.Extension.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
+            _logger.Log($"MenuItemCallback in {this.ToString()} started.");
+
             this.CheckIfUnloadedFilesPresent();
 
             string message = _unloadedPresent
                 ? "Unloaded projects are present"
                 : "No unloaded project are in the solution. Nothing to map.";
+
+            _logger.Log(message);
+
             string title = "Map Local IIS";
 
             if (!_unloadedPresent)
@@ -141,6 +151,8 @@ namespace PowerArm.Extension.Commands
             string s = p.GetText(owP.TextDocument.EndPoint);
 
             this.ProcessErrorMessage(s);
+
+            _logger.Log($"MenuItemCallback in {this.ToString()} finished.");
         }
 
         public void ProcessErrorMessage(string errorMessage)

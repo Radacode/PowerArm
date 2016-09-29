@@ -11,6 +11,7 @@ using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using radacode.net.logger;
 
 namespace PowerArm.Extension.Commands
 {
@@ -39,15 +40,19 @@ namespace PowerArm.Extension.Commands
         private readonly DTE dte;
         private IVsStatusbar statusbar;
 
-        private Dictionary<String, Boolean> _initialConfigurations; 
+        private Dictionary<String, Boolean> _initialConfigurations;
+
+        private ILogger _logger; 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CleanAll"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private CleanAll(Package package)
+        private CleanAll(Package package, ILogger logger)
         {
+            _logger = logger;
+
             if (package == null)
             {
                 throw new ArgumentNullException("package");
@@ -110,9 +115,9 @@ namespace PowerArm.Extension.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)
+        public static void Initialize(Package package, ILogger logger)
         {
-            Instance = new CleanAll(package);
+            Instance = new CleanAll(package, logger);
         }
 
         /// <summary>
