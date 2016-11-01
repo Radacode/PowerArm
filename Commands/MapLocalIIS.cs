@@ -118,15 +118,15 @@ namespace PowerArm.Extension.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            _logger.Log($"MenuItemCallback in {this.ToString()} started.");
+            _logger?.Log($"MenuItemCallback in {this.ToString()} started.");
 
             this.CheckIfUnloadedFilesPresent();
 
             string message = _unloadedPresent
-                ? "Unloaded projects are present"
+                ? "Unloaded projects are present."
                 : "No unloaded project are in the solution. Nothing to map.";
 
-            _logger.Log(message);
+            _logger?.Log(message);
 
             string title = "Map Local IIS";
 
@@ -152,10 +152,10 @@ namespace PowerArm.Extension.Commands
 
             this.ProcessErrorMessage(s);
 
-            _logger.Log($"MenuItemCallback in {this.ToString()} finished.");
+            _logger?.Log($"MenuItemCallback in {this.ToString()} finished.");
         }
 
-        public void ProcessErrorMessage(string errorMessage)
+        private void ProcessErrorMessage(string errorMessage)
         {
             //Trying to parse each line.
             var result = Regex.Split(errorMessage, "\r\n|\r|\n");

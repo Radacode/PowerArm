@@ -59,9 +59,6 @@ namespace PowerArm.Extension
         /// </summary>
         public PowerArmPackage()
         {
-            _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin);
-            
-            _logger.Log(string.Format(CultureInfo.CurrentCulture, "Entering constructor for: {0}", this.ToString()));
         }
 
         private void InitializeDTE()
@@ -94,7 +91,8 @@ namespace PowerArm.Extension
         /// </summary>
         protected override void Initialize()
         {
-            _logger.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
+            _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin);
+            _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this, _logger);
             MapLocalIIS.Initialize(this, _logger);
             RestartAsAdmin.Initialize(this, _logger);
@@ -108,7 +106,7 @@ namespace PowerArm.Extension
                 solution.AdviseSolutionEvents(this, out _solutionEventsCoockie);
             }
 
-            _logger.Log("All initializations complete.");
+            _logger?.Log("All initializations complete.");
         }
 
         #endregion
