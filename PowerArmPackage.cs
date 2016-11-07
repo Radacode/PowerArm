@@ -91,6 +91,7 @@ namespace PowerArm.Extension
         /// </summary>
         protected override void Initialize()
         {
+
             _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin);
             _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this, _logger);

@@ -150,7 +150,18 @@ namespace PowerArm.Extension.Commands
             var p = owP.TextDocument.StartPoint.CreateEditPoint();
             string s = p.GetText(owP.TextDocument.EndPoint);
 
-            this.ProcessErrorMessage(s);
+            try
+            {
+                this.ProcessErrorMessage(s);
+            }
+            catch (Exception ex)
+            {
+                var preamble =
+                    $"MenuItemCallback in {this.ToString()} encountered an error. The logic logged the following before failing: /n {_mapLog}";
+
+                _logger?.Log(preamble);
+                _logger?.Error($"The error is the following: {ex.Message}", ex.StackTrace);
+            }
 
             _logger?.Log($"MenuItemCallback in {this.ToString()} finished.");
         }
@@ -213,29 +224,49 @@ namespace PowerArm.Extension.Commands
 
             var uri = new Uri(url);
 
-            ServerManager iisManager = new ServerManager();
-            var site = iisManager.Sites.Add(projectName, uri.Scheme, $"*:{uri.Port}:{uri.DnsSafeHost}", Path.GetDirectoryName(pathToProject));
-            iisManager.CommitChanges();
 
-            var count = 0;
-
-            while (!iisManager.Sites.Any(s => s.Name == projectName) && count < 20)
+            using (ServerManager iisManager = new ServerManager())
             {
-                System.Threading.Thread.Sleep(100);
-                count++;
+                if (!iisManager.ApplicationPools.Any(p => p.Name == projectName))
+                {
+                    ApplicationPool newPool = iisManager.ApplicationPools.Add(projectName);
+                    newPool.ManagedRuntimeVersion = "v4.0";
+                    iisManager.CommitChanges();
+                }
+
+                var site = iisManager.Sites.Add(projectName, uri.Scheme, $"*:{uri.Port}:{uri.DnsSafeHost}", Path.GetDirectoryName(pathToProject));
+                site.ApplicationDefaults.ApplicationPoolName = projectName;
+
+                foreach (var item in site.Applications)
+                {
+                    item.ApplicationPoolName = projectName;
+                }
+
+                iisManager.CommitChanges();
+
+                var count = 0;
+
+                while (!iisManager.Sites.Any(s => s.Name == projectName) && count < 20)
+                {
+                    System.Threading.Thread.Sleep(100);
+                    count++;
+                }
+
+                _mapLog += Environment.NewLine + "Site added successfully.";
+
+                try
+                {
+                    site.Start();
+                    _mapLog += Environment.NewLine + "Site started";
+                }
+                catch (Exception ex)
+                {
+                    _mapLog += Environment.NewLine + "Site could not be started; Try starting it manually.";
+                }
             }
 
-            _mapLog += Environment.NewLine + "Site added successfully.";
 
-            try
-            {
-                site.Start();
-                _mapLog += Environment.NewLine + "Site started";
-            }
-            catch (Exception ex)
-            {
-                _mapLog += Environment.NewLine + "Site could not be started; Try starting it manually.";
-            }
+
 
             var hostsEntryExists = false;
 
