@@ -51,6 +51,7 @@ namespace PowerArm.Extension
         private ILogger _logger;
         private string _loggerLogin = "6a702fdf-3416-42db-add2-a5fb3a6558eb";
         private string _loggerPassword = "c{7aG(#t";
+        private string _loggerAudienceId = "b10a7516218e45c8bc5fa9dff32d156d";
 
         public DTE DTE { get; private set; }
 
@@ -92,7 +93,7 @@ namespace PowerArm.Extension
         protected override void Initialize()
         {
 
-            _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin);
+            _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
             _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this, _logger);
             MapLocalIIS.Initialize(this, _logger);

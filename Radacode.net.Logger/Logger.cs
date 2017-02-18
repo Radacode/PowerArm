@@ -24,7 +24,9 @@ namespace radacode.net.logger
 
         private string _instanceId;
 
-        public Logger(string login, string password, string instanceId)
+        private string _audienceId;
+
+        public Logger(string login, string password, string instanceId, string audienceId)
         {
             try
             {
@@ -34,13 +36,15 @@ namespace radacode.net.logger
                     {
                         "grant_type",
                         "username",
-                        "password"
+                        "password",
+                        "client_id"
                     },
                     new string[]
                     {
                         "password",
                         login,
-                        password
+                        password,
+                        audienceId
                     });
 
                 var data = JObject.Parse(accessToken);
