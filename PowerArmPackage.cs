@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using EnvDTE;
 using Microsoft.VisualStudio;
@@ -39,11 +41,12 @@ namespace PowerArm.Extension
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideService((typeof(Logger)), IsAsyncQueryable = true)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution)]
     [Guid(Guids.PackageId)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
-    public sealed partial class PowerArmPackage : Package, IVsSolutionLoadManager
+    public sealed partial class PowerArmPackage : AsyncPackage, IVsSolutionLoadManager
     {
         private uint _solutionEventsCoockie;
 
@@ -90,10 +93,13 @@ namespace PowerArm.Extension
         /// Initialization of the package; this method is called right after the package is sited, so this is the place
         /// where you can put all the initialization code that rely on services provided by VisualStudio.
         /// </summary>
-        protected override void Initialize()
+        protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            if(Environment.MachineName.Contains("LT-214883"))
-                _logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
+            this.AddService(typeof(Logger), CreateLogger);
+
+            await base.InitializeAsync(cancellationToken, progress);
+            if (Environment.MachineName.Contains("LT-214883"))
+                _logger = await this.GetServiceAsync(typeof(Logger)) as ILogger;
             _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this, _logger);
             MapLocalIIS.Initialize(this, _logger);
@@ -109,6 +115,17 @@ namespace PowerArm.Extension
             }
 
             _logger?.Log("All initializations complete.");
+        }
+
+        private async Task<object> CreateLogger(IAsyncServiceContainer container, CancellationToken cancellationtoken, Type servicetype, IProgress<ServiceProgressData> progress)
+        {
+            Logger logger = null;
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
+            });
+
+            return logger;
         }
 
         #endregion

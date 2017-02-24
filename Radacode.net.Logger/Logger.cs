@@ -21,40 +21,40 @@ namespace radacode.net.logger
 
         private string _login;
         private string _password;
-
         private string _instanceId;
+        private string _clientId;
 
-        private string _audienceId;
-
-        public Logger(string login, string password, string instanceId, string audienceId)
+        public Logger(string login, string password, string instanceId, string clientId)
         {
             try
             {
-                var accessToken = HttpPostUrlEncoded(
+                _clientId = clientId;
+
+                var accessTokenAquirer = HttpPostUrlEncoded(
                     _rdcNetUrl + "/token",
                     new string[]
                     {
                         "grant_type",
                         "username",
                         "password",
-                        "client_id"
+                        "client_Id"
                     },
                     new string[]
                     {
                         "password",
                         login,
                         password,
-                        audienceId
+                        clientId
                     });
 
-                var data = JObject.Parse(accessToken);
+                var data = JObject.Parse(accessTokenAquirer.Result);
 
                 _token = (string)data.SelectToken("access_token");
 
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
 
-                var res = client.GetAsync(_rdcNetUrl + "/api/auth/check").Result;
+                var res = client.GetAsync(_rdcNetUrl + "/api/auth/check").GetAwaiter().GetResult();
 
                 if(res.StatusCode != HttpStatusCode.OK)
                     throw new Exception("Unable to access RDC.NET with aquired token. Check call failed.");
@@ -66,6 +66,7 @@ namespace radacode.net.logger
             {
                 throw ex;
             }
+            
         }
 
         public void Log(string message)
@@ -81,7 +82,7 @@ namespace radacode.net.logger
                     token = _instanceId
                 });
 
-            HttpPostJson(
+            var logMaker = HttpPostJson(
                 _rdcNetUrl + "/api/logs/add", payload,
                 new Dictionary<string,string> { { "Authorization", "Bearer " +_token }} );
         }
@@ -100,12 +101,14 @@ namespace radacode.net.logger
                     stack = stackTrace
                 });
 
-            HttpPostJson(
+            var logMaker = HttpPostJson(
                 _rdcNetUrl + "/api/logs/add", payload,
                 new Dictionary<string, string> { { "Authorization", "Bearer " + _token } });
+
+            logMaker.GetAwaiter().GetResult();
         }
 
-        static string HttpPostJson(string url, string jsonPayload, Dictionary<string,string> headers)
+        static async Task<string> HttpPostJson(string url, string jsonPayload, Dictionary<string,string> headers)
         {
             HttpWebRequest req = WebRequest.Create(new Uri(url))
                 as HttpWebRequest;
@@ -127,7 +130,7 @@ namespace radacode.net.logger
             }
 
             // Send the request:
-            using (Stream dataStream = req.GetRequestStream())
+            using (Stream dataStream = await req.GetRequestStreamAsync())
             {
                 dataStream.Write(formData, 0, formData.Length);
             }
@@ -137,7 +140,7 @@ namespace radacode.net.logger
 
                 // Pick up the response:
                 string result = null;
-                using (HttpWebResponse resp = req.GetResponse()
+                using (HttpWebResponse resp = await req.GetResponseAsync()
                     as HttpWebResponse)
                 {
                     StreamReader reader =
@@ -153,7 +156,7 @@ namespace radacode.net.logger
             }
         }
 
-        static string HttpPostUrlEncoded(string url, string[] paramName, string[] paramVal)
+        static async Task<string> HttpPostUrlEncoded(string url, string[] paramName, string[] paramVal)
         {
             HttpWebRequest req = WebRequest.Create(new Uri(url))
                 as HttpWebRequest;
@@ -179,7 +182,7 @@ namespace radacode.net.logger
             }
 
             // Send the request:
-            using (Stream dataStream = req.GetRequestStream())
+            using (Stream dataStream = await req.GetRequestStreamAsync())
             {
                 dataStream.Write(formData, 0, formData.Length);
             }
@@ -189,7 +192,7 @@ namespace radacode.net.logger
 
                 // Pick up the response:
                 string result = null;
-                using (HttpWebResponse resp = req.GetResponse()
+                using (HttpWebResponse resp = await req.GetResponseAsync()
                     as HttpWebResponse)
                 {
                     StreamReader reader =
