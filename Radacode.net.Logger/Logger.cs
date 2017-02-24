@@ -54,7 +54,7 @@ namespace radacode.net.logger
                 var client = new HttpClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
 
-                var res = client.GetAsync(_rdcNetUrl + "/api/auth/check").GetAwaiter().GetResult();
+                var res = client.GetAsync(_rdcNetUrl + "/api/auth/check").GetAwaiter().GetResult(); ;
 
                 if(res.StatusCode != HttpStatusCode.OK)
                     throw new Exception("Unable to access RDC.NET with aquired token. Check call failed.");
@@ -82,7 +82,7 @@ namespace radacode.net.logger
                     token = _instanceId
                 });
 
-            var logMaker = HttpPostJson(
+            HttpPostJson(
                 _rdcNetUrl + "/api/logs/add", payload,
                 new Dictionary<string,string> { { "Authorization", "Bearer " +_token }} );
         }
@@ -101,11 +101,9 @@ namespace radacode.net.logger
                     stack = stackTrace
                 });
 
-            var logMaker = HttpPostJson(
+            HttpPostJson(
                 _rdcNetUrl + "/api/logs/add", payload,
                 new Dictionary<string, string> { { "Authorization", "Bearer " + _token } });
-
-            logMaker.GetAwaiter().GetResult();
         }
 
         static async Task<string> HttpPostJson(string url, string jsonPayload, Dictionary<string,string> headers)
