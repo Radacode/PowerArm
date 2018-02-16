@@ -98,7 +98,7 @@ namespace PowerArm.Extension
             this.AddService(typeof(Logger), CreateLogger);
 
             await base.InitializeAsync(cancellationToken, progress);
-            if (Environment.MachineName.Contains("LT-214883"))
+            if (Environment.MachineName.Contains("LT-258157"))
                 _logger = await this.GetServiceAsync(typeof(Logger)) as ILogger;
             _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
             CleanAll.Initialize(this, _logger);

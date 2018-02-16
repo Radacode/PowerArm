@@ -15,6 +15,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.Administration;
+using PowerArm.Extension.Managers;
 using radacode.net.logger;
 using Configuration = EnvDTE.Configuration;
 
@@ -46,6 +47,7 @@ namespace PowerArm.Extension.Commands
         private string _mapLog;
 
         private bool _unloadedPresent;
+        private string _unloadedProject;
 
         private ILogger _logger;
 
@@ -78,6 +80,8 @@ namespace PowerArm.Extension.Commands
 
                 commandService.AddCommand(menuItem);
             }
+
+            _unloadedProject = String.Empty;
         }
 
         /// <summary>
@@ -145,7 +149,24 @@ namespace PowerArm.Extension.Commands
 
             Window win = dte.Windows.Item(EnvDTE.Constants.vsWindowKindOutput);
             OutputWindow ow = win.Object as OutputWindow;
-            OutputWindowPane owP = ow.OutputWindowPanes.Item(ow.OutputWindowPanes.Count);
+
+            OutputWindowPane owP = null;
+
+            for (uint i = 1; i <= ow.OutputWindowPanes.Count; i++)
+            {
+                if (ow.OutputWindowPanes.Item(i).Name.Equals("Solution", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    owP = ow.OutputWindowPanes.Item(i);
+                }
+            }
+
+            if (owP == null && string.IsNullOrEmpty(_unloadedProject)) return;
+            if (owP == null && !string.IsNullOrEmpty(_unloadedProject))
+            {
+                this.ReloadProject(_unloadedProject);
+
+                this.MenuItemCallback(sender, e);
+            }
 
             var p = owP.TextDocument.StartPoint.CreateEditPoint();
             string s = p.GetText(owP.TextDocument.EndPoint);
@@ -324,6 +345,7 @@ namespace PowerArm.Extension.Commands
                         StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     _unloadedPresent = true;
+                    _unloadedProject = project.Name;
                     break;
                 }
             }
@@ -333,9 +355,16 @@ namespace PowerArm.Extension.Commands
         {
             this.CheckIfUnloadedFilesPresent();
 
+            var isAdmin = false;
+
             var menuCommand = sender as OleMenuCommand;
 
-            menuCommand.Enabled = _unloadedPresent;
+            if (ElevationChecker.CanCheckElevation)
+            {
+                isAdmin = ElevationChecker.IsElevated(System.Diagnostics.Process.GetCurrentProcess().Handle);
+            }
+
+            menuCommand.Enabled = _unloadedPresent && isAdmin;
         }
     }
 }
