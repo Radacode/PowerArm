@@ -8,6 +8,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -95,6 +96,8 @@ namespace PowerArm.Extension
         /// </summary>
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
+            var client = new HttpClient();
+
             this.AddService(typeof(Logger), CreateLogger);
 
             await base.InitializeAsync(cancellationToken, progress);
