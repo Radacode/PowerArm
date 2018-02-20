@@ -131,6 +131,8 @@ namespace PowerArm.Extension.Commands
         {
             foreach (Project p in dte.Solution.Projects)
             {
+                if(p.ConfigurationManager == null) continue;
+
                 var conf = p.ConfigurationManager.ActiveConfiguration;
 
                 var initialValue = (bool) conf.Properties.Item("UseVSHostingProcess").Value;

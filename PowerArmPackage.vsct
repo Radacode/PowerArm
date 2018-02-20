@@ -38,6 +38,7 @@
       <Button guid="guidPowerArmPackageCmdSet" id="CleanAllId" priority="0x0200" type="Button">
         <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Clean All</ButtonText>
@@ -47,6 +48,7 @@
       <Button guid="guidPowerArmPackageCmdSet" id="MapIISId" priority="0x0300" type="Button">
         <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
         <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Map IIS Sites</ButtonText>

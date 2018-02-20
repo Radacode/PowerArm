@@ -98,7 +98,7 @@ namespace PowerArm.Extension
         {
             var client = new HttpClient();
 
-            this.AddService(typeof(Logger), CreateLogger);
+            //this.AddService(typeof(Logger), CreateLogger);
 
             await base.InitializeAsync(cancellationToken, progress);
             if (Environment.MachineName.Contains("LT-258157"))
