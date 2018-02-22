@@ -1,32 +1,29 @@
 ﻿//------------------------------------------------------------------------------
-// <copyright file="RestartAsAdmin.cs" company="Radacode">
+// <copyright file="CleanAll.cs" company="Radacode">
 //     Copyright (c) Company.  All rights reserved.
 // </copyright>
 //------------------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.IO;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using PowerArm.Extension.Managers;
-using radacode.net.logger;
-using Process = System.Diagnostics.Process;
+//using radacode.net.logger;
 
 namespace PowerArm.Extension.Commands
 {
     /// <summary>
     /// Command handler
-    /// Courtesy of https://github.com/ilmax/vs-restart/
     /// </summary>
-    internal sealed class RestartAsAdmin
+    internal sealed class CleanAll
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0100;
+        public const int CommandId = 0x0200;
 
         public const int RadacodeId = 0x1021;
 
@@ -43,16 +40,18 @@ namespace PowerArm.Extension.Commands
         private readonly DTE dte;
         private IVsStatusbar statusbar;
 
-        private ILogger _logger;
+        private Dictionary<String, Boolean> _initialConfigurations;
+
+        //private ILogger _logger; 
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestartAsAdmin"/> class.
+        /// Initializes a new instance of the <see cref="CleanAll"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private RestartAsAdmin(Package package, ILogger logger)
+        private CleanAll(Package package)//, ILogger logger)
         {
-            _logger = logger;
+            //_logger = logger;
 
             if (package == null)
             {
@@ -61,7 +60,9 @@ namespace PowerArm.Extension.Commands
 
             this.package = package;
 
-            dte = (package as PowerArmPackage).DTE;
+            _initialConfigurations = new Dictionary<string, bool>();
+
+            dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
 
             statusbar = Package.GetGlobalService(typeof(SVsStatusbar)) as IVsStatusbar;
 
@@ -72,28 +73,28 @@ namespace PowerArm.Extension.Commands
                 var menuItem = new OleMenuCommand(this.MenuItemCallback, menuCommandId);
                 menuItem.BeforeQueryStatus += MenuItemOnBeforeQueryStatus;
 
-                if (ElevationChecker.CanCheckElevation)
-                    menuItem.Visible = !ElevationChecker.IsElevated(Process.GetCurrentProcess().Handle);
-                else
-                    menuItem.Visible = true;
-
                 commandService.AddCommand(menuItem);
             }
         }
 
         private void MenuItemOnBeforeQueryStatus(object sender, EventArgs eventArgs)
         {
-            OleMenuCommand item = (OleMenuCommand)sender;
-            if (ElevationChecker.CanCheckElevation)
+            var menuCommand = sender as OleMenuCommand;
+
+            if (dte.Solution.Projects.Count > 0)
             {
-                item.Visible = !ElevationChecker.IsElevated(Process.GetCurrentProcess().Handle);
+                menuCommand.Enabled = true;
+            }
+            else
+            {
+                menuCommand.Enabled = false;
             }
         }
 
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static RestartAsAdmin Instance
+        public static CleanAll Instance
         {
             get;
             private set;
@@ -114,9 +115,9 @@ namespace PowerArm.Extension.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package, ILogger logger)
+        public static void Initialize(Package package)//, ILogger logger)
         {
-            Instance = new RestartAsAdmin(package, logger);
+            Instance = new CleanAll(package); //, logger);
         }
 
         /// <summary>
@@ -128,19 +129,48 @@ namespace PowerArm.Extension.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            var dte = (package as PowerArmPackage).DTE;
-
-            if (dte == null)
+            foreach (Project p in dte.Solution.Projects)
             {
-                // Show some error message and return
-                return;
+                if(p.ConfigurationManager == null) continue;
+
+                var conf = p.ConfigurationManager.ActiveConfiguration;
+
+                var initialValue = (bool) conf.Properties.Item("UseVSHostingProcess").Value;
+
+                if (!_initialConfigurations.ContainsKey(p.UniqueName))
+                {
+                    this._initialConfigurations.Add(p.UniqueName, initialValue);
+                }
+
+                conf.Properties.Item("UseVSHostingProcess").Value = false;
+
+                DeleteDirectoryRecursive(Path.GetDirectoryName(p.FileName));
+
+                conf.Properties.Item("UseVSHostingProcess").Value = _initialConfigurations[p.UniqueName];
             }
 
-            Debug.Assert(dte != null);
+            statusbar.SetText("Clean finished");
+        }
 
-            bool elevated = ((OleMenuCommand)sender).CommandID.ID == MenuId.RestartAsAdmin;
+        static void DeleteDirectoryRecursive(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
 
-            new VisualStuioRestarter().Restart(dte, elevated);
+            foreach (var dir in di.GetDirectories())
+            {
+                if (dir.Name == "bin" || dir.Name == "obj")
+                {
+                    try
+                    {
+                        dir.Delete(true);
+                    }
+                    catch { }
+                }
+                else
+                {
+                    DeleteDirectoryRecursive(dir.FullName);
+                }
+            }
         }
     }
 }

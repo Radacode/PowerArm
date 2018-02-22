@@ -1,24 +1,13 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="PowerArmPackage.cs" company="Company">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using PowerArm.Extension.Commands;
-using radacode.net.logger;
 
 namespace PowerArm.Extension
 {
@@ -42,28 +31,38 @@ namespace PowerArm.Extension
     [PackageRegistration(UseManagedResourcesOnly = true)]
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)] // Info on this package for Help/About
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideService((typeof(Logger)), IsAsyncQueryable = true)]
+    //[ProvideService((typeof(Logger)), IsAsyncQueryable = true)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution)]
-    [Guid(Guids.PackageId)]
+    [Guid(PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed partial class PowerArmPackage : AsyncPackage, IVsSolutionLoadManager
     {
         private uint _solutionEventsCoockie;
 
         private DteInitializer _dteInitializer;
-        private ILogger _logger;
-        private string _loggerLogin = "6a702fdf-3416-42db-add2-a5fb3a6558eb";
-        private string _loggerPassword = "c{7aG(#t";
-        private string _loggerAudienceId = "b10a7516218e45c8bc5fa9dff32d156d";
+
+        //private ILogger _logger;
+        //private string _loggerLogin = "6a702fdf-3416-42db-add2-a5fb3a6558eb";
+        //private string _loggerPassword = "c{7aG(#t";
+        //private string _loggerAudienceId = "b10a7516218e45c8bc5fa9dff32d156d";
 
         public DTE DTE { get; private set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PowerArm"/> class.
+        /// PowerArmPackage GUID string.
+        /// </summary>
+        public const string PackageGuidString = "859e6cf7-852b-4756-bef5-bacea93612d4";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PowerArm.Extension.PowerArmPackage"/> class.
         /// </summary>
         public PowerArmPackage()
         {
+            // Inside this method you can place any initialization code that does not require
+            // any Visual Studio service because at this point the package object is created but
+            // not sited yet inside Visual Studio environment. The place to do all the other
+            // initialization is the Initialize method.
         }
 
         private void InitializeDTE()
@@ -96,17 +95,15 @@ namespace PowerArm.Extension
         /// </summary>
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            var client = new HttpClient();
-
             //this.AddService(typeof(Logger), CreateLogger);
 
             await base.InitializeAsync(cancellationToken, progress);
-            if (Environment.MachineName.Contains("LT-258157"))
-                _logger = await this.GetServiceAsync(typeof(Logger)) as ILogger;
-            _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
-            CleanAll.Initialize(this, _logger);
-            MapLocalIIS.Initialize(this, _logger);
-            RestartAsAdmin.Initialize(this, _logger);
+            //if (Environment.MachineName.Contains("LT-258157"))
+                //_logger = await this.GetServiceAsync(typeof(Logger)) as ILogger;
+            //_logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
+            CleanAll.Initialize(this);//, _logger);
+            MapLocalIIS.Initialize(this);//, _logger);
+            RestartAsAdmin.Initialize(this);//, _logger);
             base.Initialize();
 
             InitializeDTE();
@@ -117,19 +114,19 @@ namespace PowerArm.Extension
                 solution.AdviseSolutionEvents(this, out _solutionEventsCoockie);
             }
 
-            _logger?.Log("All initializations complete.");
+            //_logger?.Log("All initializations complete.");
         }
 
-        private async Task<object> CreateLogger(IAsyncServiceContainer container, CancellationToken cancellationtoken, Type servicetype, IProgress<ServiceProgressData> progress)
-        {
-            Logger logger = null;
-            await System.Threading.Tasks.Task.Run(() =>
-            {
-                logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
-            });
+        //private async Task<object> CreateLogger(IAsyncServiceContainer container, CancellationToken cancellationtoken, Type servicetype, IProgress<ServiceProgressData> progress)
+        //{
+        //    Logger logger = null;
+        //    await System.Threading.Tasks.Task.Run(() =>
+        //    {
+        //        logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
+        //    });
 
-            return logger;
-        }
+        //    return logger;
+        //}
 
         #endregion
 

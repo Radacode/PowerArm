@@ -16,7 +16,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.Administration;
 using PowerArm.Extension.Managers;
-using radacode.net.logger;
+//using radacode.net.logger;
 using Configuration = EnvDTE.Configuration;
 
 namespace PowerArm.Extension.Commands
@@ -49,16 +49,16 @@ namespace PowerArm.Extension.Commands
         private bool _unloadedPresent;
         private string _unloadedProject;
 
-        private ILogger _logger;
+        //private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MapLocalIIS"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private MapLocalIIS(Package package, ILogger logger)
+        private MapLocalIIS(Package package)//, ILogger logger)
         {
-            _logger = logger;
+            //_logger = logger;
 
             if (package == null)
             {
@@ -108,9 +108,9 @@ namespace PowerArm.Extension.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package, ILogger logger)
+        public static void Initialize(Package package)//, ILogger logger)
         {
-            Instance = new MapLocalIIS(package, logger);
+            Instance = new MapLocalIIS(package); //, logger);
         }
 
         /// <summary>
@@ -122,7 +122,7 @@ namespace PowerArm.Extension.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            _logger?.Log($"MenuItemCallback in {this.ToString()} started.");
+            //_logger?.Log($"MenuItemCallback in {this.ToString()} started.");
 
             this.CheckIfUnloadedFilesPresent();
 
@@ -130,7 +130,7 @@ namespace PowerArm.Extension.Commands
                 ? "Unloaded projects are present."
                 : "No unloaded project are in the solution. Nothing to map.";
 
-            _logger?.Log(message);
+            //_logger?.Log(message);
 
             string title = "Map Local IIS";
 
@@ -152,11 +152,14 @@ namespace PowerArm.Extension.Commands
 
             OutputWindowPane owP = null;
 
-            for (uint i = 1; i <= ow.OutputWindowPanes.Count; i++)
+            if (ow.OutputWindowPanes != null)
             {
-                if (ow.OutputWindowPanes.Item(i).Name.Equals("Solution", StringComparison.CurrentCultureIgnoreCase))
+                for (uint i = 1; i <= ow.OutputWindowPanes.Count; i++)
                 {
-                    owP = ow.OutputWindowPanes.Item(i);
+                    if (ow.OutputWindowPanes.Item(i).Name.Equals("Solution", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        owP = ow.OutputWindowPanes.Item(i);
+                    }
                 }
             }
 
@@ -180,11 +183,11 @@ namespace PowerArm.Extension.Commands
                 var preamble =
                     $"MenuItemCallback in {this.ToString()} encountered an error. The logic logged the following before failing: /n {_mapLog}";
 
-                _logger?.Log(preamble);
-                _logger?.Error($"The error is the following: {ex.Message}", ex.StackTrace);
+                //_logger?.Log(preamble);
+                //_logger?.Error($"The error is the following: {ex.Message}", ex.StackTrace);
             }
 
-            _logger?.Log($"MenuItemCallback in {this.ToString()} finished.");
+            //_logger?.Log($"MenuItemCallback in {this.ToString()} finished.");
         }
 
         private void ProcessErrorMessage(string errorMessage)
