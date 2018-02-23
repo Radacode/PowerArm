@@ -34,7 +34,7 @@ namespace PowerArm.Extension
     //[ProvideService((typeof(Logger)), IsAsyncQueryable = true)]
     [ProvideAutoLoad(UIContextGuids80.SolutionExists)]
     [ProvideAutoLoad(UIContextGuids80.NoSolution)]
-    [Guid(PackageGuidString)]
+    [Guid(Guids.PackageId)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
     public sealed partial class PowerArmPackage : AsyncPackage, IVsSolutionLoadManager
     {
@@ -48,11 +48,6 @@ namespace PowerArm.Extension
         //private string _loggerAudienceId = "b10a7516218e45c8bc5fa9dff32d156d";
 
         public DTE DTE { get; private set; }
-
-        /// <summary>
-        /// PowerArmPackage GUID string.
-        /// </summary>
-        public const string PackageGuidString = "859e6cf7-852b-4756-bef5-bacea93612d4";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PowerArm.Extension.PowerArmPackage"/> class.
