@@ -1,9 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="Radacode.PowerArm.38b9ab5e-bf68-4511-92f8-12810095c3ce" Version="1.1.21" Language="en-US" Publisher="Radacode Inc." />
+        <Identity Id="Radacode.PowerArm.859e6cf7-852b-4756-bef5-bacea93612d4" Version="1.1.21" Language="en-US" Publisher="Radacode Inc." />
         <DisplayName>Radacode.PowerArm</DisplayName>
         <Description xml:space="preserve">A Radacode Visual Studio productivity experience provider.</Description>
+        <Icon>Resources\PowerArmPackage.ico</Icon>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,16.0)" />
