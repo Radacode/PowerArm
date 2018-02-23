@@ -59,7 +59,7 @@
   </Commands>
 
   <Symbols>
-    <GuidSymbol name="guidPowerArmPackage" value="{79717230-8601-4566-be1b-8c8831f92931}" />
+    <GuidSymbol name="guidPowerArmPackage" value="{859e6cf7-852b-4756-bef5-bacea93612d4}" />
 
     <GuidSymbol name="guidPowerArmPackageCmdSet" value="{3c281d67-fe51-41e1-b138-b4385425efc5}">
       <IDSymbol name="TopLevelMenu" value="0x1021"/>
