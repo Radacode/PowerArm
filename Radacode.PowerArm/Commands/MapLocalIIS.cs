@@ -9,6 +9,7 @@ using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 using EnvDTE;
 using EnvDTE80;
@@ -16,6 +17,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.Administration;
 using PowerArm.Extension.Managers;
+using radacode.net.logger;
 //using radacode.net.logger;
 using Configuration = EnvDTE.Configuration;
 
@@ -49,16 +51,16 @@ namespace PowerArm.Extension.Commands
         private bool _unloadedPresent;
         private string _unloadedProject;
 
-        //private ILogger _logger;
+        private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MapLocalIIS"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private MapLocalIIS(Package package)//, ILogger logger)
+        private MapLocalIIS(Package package, ILogger logger)
         {
-            //_logger = logger;
+            _logger = logger;
 
             if (package == null)
             {
@@ -108,9 +110,9 @@ namespace PowerArm.Extension.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)//, ILogger logger)
+        public static void Initialize(Package package, ILogger logger)
         {
-            Instance = new MapLocalIIS(package); //, logger);
+            Instance = new MapLocalIIS(package, logger);
         }
 
         /// <summary>
@@ -169,6 +171,7 @@ namespace PowerArm.Extension.Commands
                 this.ReloadProject(_unloadedProject);
 
                 this.MenuItemCallback(sender, e);
+                return;
             }
 
             var p = owP.TextDocument.StartPoint.CreateEditPoint();
@@ -183,11 +186,11 @@ namespace PowerArm.Extension.Commands
                 var preamble =
                     $"MenuItemCallback in {this.ToString()} encountered an error. The logic logged the following before failing: /n {_mapLog}";
 
-                //_logger?.Log(preamble);
-                //_logger?.Error($"The error is the following: {ex.Message}", ex.StackTrace);
+                _logger?.Log(preamble);
+                _logger?.Error($"The error is the following: {ex.Message}", ex.StackTrace);
             }
 
-            //_logger?.Log($"MenuItemCallback in {this.ToString()} finished.");
+            _logger?.Log($"MenuItemCallback in {this.ToString()} finished.");
         }
 
         private void ProcessErrorMessage(string errorMessage)
@@ -289,9 +292,6 @@ namespace PowerArm.Extension.Commands
                 }
             }
 
-
-
-
             var hostsEntryExists = false;
 
             using(var reader = new StringReader(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "drivers/etc/hosts")))
@@ -321,6 +321,38 @@ namespace PowerArm.Extension.Commands
             _mapLog += Environment.NewLine + "hosts written.";
 
             this.ReloadProject(projectName);
+
+            //TODO: Ask if user wants to set ApplicationPoolIdentitiy to NetworkService and allow it access to site folder.
+
+            var shouldChangeAppPoolResult = VsShellUtilities.ShowMessageBox(
+                this.ServiceProvider,
+                $"Site {projectName} mapped in IIS. /n Would you like to change the created ApplicationPool's identitiy to NetworkService user and assign it read rights for the project folder?",
+                "Change ApplicationPool Identitiy",
+                OLEMSGICON.OLEMSGICON_QUERY,
+                OLEMSGBUTTON.OLEMSGBUTTON_YESNO,
+                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
+
+            if (shouldChangeAppPoolResult == 6)
+            {
+                using (ServerManager iisManager = new ServerManager())
+                {
+                    var currentPool = iisManager.ApplicationPools.First(p => p.Name == projectName);
+                    currentPool.ProcessModel.IdentityType = ProcessModelIdentityType.NetworkService;
+                    iisManager.CommitChanges();
+                }
+
+                DirectorySecurity dir_security = Directory.GetAccessControl(pathToProject);
+
+                FileSystemAccessRule full_access_rule = new FileSystemAccessRule("NetworkService",
+                    FileSystemRights.FullControl, InheritanceFlags.ContainerInherit |
+                                                  InheritanceFlags.ObjectInherit, PropagationFlags.None,
+                    AccessControlType.Allow);
+
+                dir_security.AddAccessRule(full_access_rule);
+
+                Directory.SetAccessControl(pathToProject, dir_security);
+            }
+
         }
 
         private void ReloadProject(string projectName)

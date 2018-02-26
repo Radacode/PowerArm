@@ -12,6 +12,7 @@ using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using PowerArm.Extension.Managers;
+using radacode.net.logger;
 //using radacode.net.logger;
 using Process = System.Diagnostics.Process;
 
@@ -43,14 +44,14 @@ namespace PowerArm.Extension.Commands
         private readonly DTE dte;
         private IVsStatusbar statusbar;
 
-        //private ILogger _logger;
+        private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RestartAsAdmin"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private RestartAsAdmin(Package package)//, ILogger logger)
+        private RestartAsAdmin(Package package, ILogger logger)
         {
             //_logger = logger;
 
@@ -114,9 +115,9 @@ namespace PowerArm.Extension.Commands
         /// Initializes the singleton instance of the command.
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        public static void Initialize(Package package)//, ILogger logger)
+        public static void Initialize(Package package, ILogger logger)
         {
-            Instance = new RestartAsAdmin(package); //, logger);
+            Instance = new RestartAsAdmin(package, logger);
         }
 
         /// <summary>

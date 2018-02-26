@@ -3,11 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using PowerArm.Extension.Commands;
+using radacode.net.logger;
 
 namespace PowerArm.Extension
 {
@@ -42,10 +44,10 @@ namespace PowerArm.Extension
 
         private DteInitializer _dteInitializer;
 
-        //private ILogger _logger;
-        //private string _loggerLogin = "6a702fdf-3416-42db-add2-a5fb3a6558eb";
-        //private string _loggerPassword = "c{7aG(#t";
-        //private string _loggerAudienceId = "b10a7516218e45c8bc5fa9dff32d156d";
+        private ILogger _logger;
+        private string _loggerLogin = "6a702fdf-3416-42db-add2-a5fb3a6558eb";
+        private string _loggerPassword = "c{7aG(#t";
+        private string _loggerAudienceId = "b10a7516218e45c8bc5fa9dff32d156d";
 
         public DTE DTE { get; private set; }
 
@@ -90,15 +92,15 @@ namespace PowerArm.Extension
         /// </summary>
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
-            //this.AddService(typeof(Logger), CreateLogger);
+            this.AddService(typeof(Logger), CreateLogger);
 
             await base.InitializeAsync(cancellationToken, progress);
-            //if (Environment.MachineName.Contains("LT-258157"))
-                //_logger = await this.GetServiceAsync(typeof(Logger)) as ILogger;
-            //_logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
-            CleanAll.Initialize(this);//, _logger);
-            MapLocalIIS.Initialize(this);//, _logger);
-            RestartAsAdmin.Initialize(this);//, _logger);
+            if (Environment.MachineName.Contains("LT-258157"))
+                _logger = await this.GetServiceAsync(typeof(Logger)) as ILogger;
+            _logger?.Log(string.Format(CultureInfo.CurrentCulture, "Entering Initialize() of: {0}", this.ToString()));
+            CleanAll.Initialize(this, _logger);
+            MapLocalIIS.Initialize(this, _logger);
+            RestartAsAdmin.Initialize(this, _logger);
             base.Initialize();
 
             InitializeDTE();
@@ -109,19 +111,19 @@ namespace PowerArm.Extension
                 solution.AdviseSolutionEvents(this, out _solutionEventsCoockie);
             }
 
-            //_logger?.Log("All initializations complete.");
+            _logger?.Log("All initializations complete.");
         }
 
-        //private async Task<object> CreateLogger(IAsyncServiceContainer container, CancellationToken cancellationtoken, Type servicetype, IProgress<ServiceProgressData> progress)
-        //{
-        //    Logger logger = null;
-        //    await System.Threading.Tasks.Task.Run(() =>
-        //    {
-        //        logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
-        //    });
+        private async Task<object> CreateLogger(IAsyncServiceContainer container, CancellationToken cancellationtoken, Type servicetype, IProgress<ServiceProgressData> progress)
+        {
+            Logger logger = null;
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
+            });
 
-        //    return logger;
-        //}
+            return logger;
+        }
 
         #endregion
 
