@@ -276,6 +276,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Radacode.ico" />
     <Content Include="System.Net.Http.dll">
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
