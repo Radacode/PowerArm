@@ -326,7 +326,7 @@ namespace PowerArm.Extension.Commands
 
             var shouldChangeAppPoolResult = VsShellUtilities.ShowMessageBox(
                 this.ServiceProvider,
-                $"Site {projectName} mapped in IIS. /n Would you like to change the created ApplicationPool's identitiy to NetworkService user and assign it read rights for the project folder?",
+                $"Site {projectName} mapped in IIS. {Environment.NewLine}Would you like to change the created ApplicationPool's identitiy to NetworkService user and assign it read rights for the project folder?",
                 "Change ApplicationPool Identitiy",
                 OLEMSGICON.OLEMSGICON_QUERY,
                 OLEMSGBUTTON.OLEMSGBUTTON_YESNO,
