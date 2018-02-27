@@ -50,6 +50,8 @@ namespace PowerArm.Extension.Commands
 
         private bool _unloadedPresent;
         private string _unloadedProject;
+        private string _poolAddingProjectTarget;
+        private uint _poolAddingProjectMoniker;
 
         private ILogger _logger;
 
@@ -124,7 +126,7 @@ namespace PowerArm.Extension.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            //_logger?.Log($"MenuItemCallback in {this.ToString()} started.");
+            _logger?.Log($"MenuItemCallback in {this.ToString()} started.");
 
             this.CheckIfUnloadedFilesPresent();
 
@@ -322,7 +324,14 @@ namespace PowerArm.Extension.Commands
 
             this.ReloadProject(projectName);
 
-            //TODO: Ask if user wants to set ApplicationPoolIdentitiy to NetworkService and allow it access to site folder.
+            foreach (EnvDTE.Project project in dte.Solution.Projects)
+            {
+                if (project.Name == projectName)
+                {
+                    _poolAddingProjectMoniker = (uint) project.Properties.Item("TargetFramework").Value;
+                    _poolAddingProjectTarget = (string) project.Properties.Item("TargetFrameworkMoniker").Value;
+                }
+            }
 
             var shouldChangeAppPoolResult = VsShellUtilities.ShowMessageBox(
                 this.ServiceProvider,
@@ -338,6 +347,12 @@ namespace PowerArm.Extension.Commands
                 {
                     var currentPool = iisManager.ApplicationPools.First(p => p.Name == projectName);
                     currentPool.ProcessModel.IdentityType = ProcessModelIdentityType.NetworkService;
+
+                    //if (!_poolAddingProjectTarget.Contains(".NETFramework,"))
+                    //{
+                    //    currentPool.ManagedRuntimeVersion = "";
+                    //}
+
                     iisManager.CommitChanges();
                 }
 
@@ -381,6 +396,7 @@ namespace PowerArm.Extension.Commands
                 {
                     _unloadedPresent = true;
                     _unloadedProject = project.Name;
+
                     break;
                 }
             }
