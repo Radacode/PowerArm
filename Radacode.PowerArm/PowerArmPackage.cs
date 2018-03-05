@@ -119,7 +119,14 @@ namespace PowerArm.Extension
             Logger logger = null;
             await System.Threading.Tasks.Task.Run(() =>
             {
-                logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
+                try
+                {
+                    logger = new Logger(_loggerLogin, _loggerPassword, _loggerLogin, _loggerAudienceId);
+                }
+                catch
+                {
+                    logger = null;
+                }
             });
 
             return logger;
