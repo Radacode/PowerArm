@@ -379,7 +379,6 @@ namespace PowerArm.Extension.Commands
 
                 Directory.SetAccessControl(projectDir, dir_security);
 
-                //icacls "c:\users\jshipp\*" /q /c /t /reset
                 var command = new StringBuilder().Append("icacls").Append(" \"").Append(projectDir).Append("\\*\"")
                     .Append(" /q /c /t /reset").ToString();
                 System.Diagnostics.Process process = new System.Diagnostics.Process();
