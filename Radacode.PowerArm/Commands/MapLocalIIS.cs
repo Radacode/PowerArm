@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
+using System.Text;
 using System.Text.RegularExpressions;
 using EnvDTE;
 using EnvDTE80;
@@ -253,6 +254,7 @@ namespace PowerArm.Extension.Commands
 
             var uri = new Uri(url);
 
+            var projectDir = Path.GetDirectoryName(pathToProject);
 
             using (ServerManager iisManager = new ServerManager())
             {
@@ -263,13 +265,20 @@ namespace PowerArm.Extension.Commands
                     iisManager.CommitChanges();
                 }
 
-                var site = iisManager.Sites.Add(projectName, uri.Scheme, $"*:{uri.Port}:{uri.DnsSafeHost}", Path.GetDirectoryName(pathToProject));
+                var site = iisManager.Sites.Add(projectName, uri.Scheme, $"*:{uri.Port}:{uri.DnsSafeHost}", projectDir);
                 site.ApplicationDefaults.ApplicationPoolName = projectName;
 
                 foreach (var item in site.Applications)
                 {
                     item.ApplicationPoolName = projectName;
                 }
+
+                var config = iisManager.GetApplicationHostConfiguration();
+                var anonymousAuthenticationSection = config.GetSection("system.webServer/security/authentication/anonymousAuthentication", projectName);
+                anonymousAuthenticationSection["enabled"] = true;
+                //use app pool user
+                anonymousAuthenticationSection["userName"] = "";
+                anonymousAuthenticationSection["password"] = "";
 
                 iisManager.CommitChanges();
 
@@ -356,7 +365,10 @@ namespace PowerArm.Extension.Commands
                     iisManager.CommitChanges();
                 }
 
-                DirectorySecurity dir_security = Directory.GetAccessControl(pathToProject);
+                
+
+                DirectorySecurity dir_security = Directory.GetAccessControl(projectDir);
+
 
                 FileSystemAccessRule full_access_rule = new FileSystemAccessRule("NetworkService",
                     FileSystemRights.FullControl, InheritanceFlags.ContainerInherit |
@@ -365,7 +377,18 @@ namespace PowerArm.Extension.Commands
 
                 dir_security.AddAccessRule(full_access_rule);
 
-                Directory.SetAccessControl(pathToProject, dir_security);
+                Directory.SetAccessControl(projectDir, dir_security);
+
+                //icacls "c:\users\jshipp\*" /q /c /t /reset
+                var command = new StringBuilder().Append("icacls").Append(" \"").Append(projectDir).Append("\\*\"")
+                    .Append(" /q /c /t /reset").ToString();
+                System.Diagnostics.Process process = new System.Diagnostics.Process();
+                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                startInfo.FileName = "cmd.exe";
+                startInfo.Arguments = command;
+                process.StartInfo = startInfo;
+                process.Start();
             }
 
         }
