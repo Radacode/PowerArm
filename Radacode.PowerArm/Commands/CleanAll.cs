@@ -137,18 +137,26 @@ namespace PowerArm.Extension.Commands
 
                 var conf = p.ConfigurationManager.ActiveConfiguration;
 
-                var initialValue = (bool) conf.Properties.Item("UseVSHostingProcess").Value;
+                var initialValue = false;
+                var shouldCareAboutInitialValue = false;
 
-                if (!_initialConfigurations.ContainsKey(p.UniqueName))
+                try
+                {
+                    initialValue = (bool) conf.Properties.Item("UseVSHostingProcess").Value;
+                    shouldCareAboutInitialValue = true;
+                }
+                catch { }
+
+                if (!_initialConfigurations.ContainsKey(p.UniqueName) && shouldCareAboutInitialValue)
                 {
                     this._initialConfigurations.Add(p.UniqueName, initialValue);
+                    conf.Properties.Item("UseVSHostingProcess").Value = false;
+                    DeleteDirectoryRecursive(Path.GetDirectoryName(p.FileName));
+                    conf.Properties.Item("UseVSHostingProcess").Value = _initialConfigurations[p.UniqueName];
+                } else
+                {
+                    DeleteDirectoryRecursive(Path.GetDirectoryName(p.FileName));
                 }
-
-                conf.Properties.Item("UseVSHostingProcess").Value = false;
-
-                DeleteDirectoryRecursive(Path.GetDirectoryName(p.FileName));
-
-                conf.Properties.Item("UseVSHostingProcess").Value = _initialConfigurations[p.UniqueName];
             }
 
             statusbar.SetText("Clean finished");
