@@ -101,6 +101,7 @@ namespace PowerArm.Extension
             CleanAll.Initialize(this, _logger);
             MapLocalIIS.Initialize(this, _logger);
             RestartAsAdmin.Initialize(this, _logger);
+            InstallLocalIIS.Initialize(this, _logger);
             base.Initialize();
 
             InitializeDTE();

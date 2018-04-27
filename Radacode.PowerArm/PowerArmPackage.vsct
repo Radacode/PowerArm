@@ -35,7 +35,7 @@
         </Strings>
       </Button>
 
-      <Button guid="guidPowerArmPackageCmdSet" id="InstallLocalIISId" priority="0x0400" type="Button">
+      <Button guid="guidPowerArmPackageCmdSet" id="InstallLocalIISId" priority="0x0200" type="Button">
         <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
@@ -45,7 +45,7 @@
         </Strings>
       </Button>
       
-      <Button guid="guidPowerArmPackageCmdSet" id="CleanAllId" priority="0x0200" type="Button">
+      <Button guid="guidPowerArmPackageCmdSet" id="CleanAllId" priority="0x0400" type="Button">
         <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
@@ -77,6 +77,7 @@
       <IDSymbol name="RestartAsAdminId" value="0x0100" />
       <IDSymbol name="CleanAllId" value="0x0200" />
       <IDSymbol name="MapIISId" value="0x0300" />
+      <IDSymbol name="InstallLocalIISId" value="0x0400" />
 
     </GuidSymbol>
 
