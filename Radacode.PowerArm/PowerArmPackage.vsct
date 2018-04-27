@@ -34,6 +34,16 @@
           <ButtonText>Restart Visual Studio with elevated privilages</ButtonText>
         </Strings>
       </Button>
+
+      <Button guid="guidPowerArmPackageCmdSet" id="InstallLocalIISId" priority="0x0400" type="Button">
+        <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>Install IIS</ButtonText>
+        </Strings>
+      </Button>
       
       <Button guid="guidPowerArmPackageCmdSet" id="CleanAllId" priority="0x0200" type="Button">
         <Parent guid="guidPowerArmPackageCmdSet" id="SolutionMenuGroup" />

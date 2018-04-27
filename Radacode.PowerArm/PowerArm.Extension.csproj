@@ -63,12 +63,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Commands\CleanAll.cs" />
+    <Compile Include="Commands\InstallLocalIIS.cs" />
     <Compile Include="Commands\MapLocalIIS.cs" />
     <Compile Include="Commands\RestartAsAdmin.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Helpers\ArgumentParser.cs" />
     <Compile Include="Helpers\ArgumentTokenCollection.cs" />
     <Compile Include="Helpers\IArgumentToken.cs" />
+    <Compile Include="Helpers\LocalIISChecker.cs" />
     <Compile Include="Helpers\StringExtension.cs" />
     <Compile Include="Managers\ElevationChecker.cs" />
     <Compile Include="Managers\VisualStuioRestarter.cs" />

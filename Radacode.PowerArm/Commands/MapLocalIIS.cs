@@ -17,6 +17,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.Administration;
+using PowerArm.Extension.Helpers;
 using PowerArm.Extension.Managers;
 using radacode.net.logger;
 //using radacode.net.logger;
@@ -436,8 +437,8 @@ namespace PowerArm.Extension.Commands
             {
                 isAdmin = ElevationChecker.IsElevated(System.Diagnostics.Process.GetCurrentProcess().Handle);
             }
-
-            menuCommand.Enabled = _unloadedPresent && isAdmin;
+            
+            menuCommand.Enabled = _unloadedPresent && isAdmin && LocalIISChecker.LocalIISIsInstalled();
         }
     }
 }

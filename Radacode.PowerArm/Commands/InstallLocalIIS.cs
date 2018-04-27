@@ -1,32 +1,24 @@
-﻿//------------------------------------------------------------------------------
-// <copyright file="RestartAsAdmin.cs" company="Radacode">
-//     Copyright (c) Company.  All rights reserved.
-// </copyright>
-//------------------------------------------------------------------------------
-
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.IO;
+using System.Globalization;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using PowerArm.Extension.Managers;
+using PowerArm.Extension.Helpers;
 using radacode.net.logger;
-using Process = System.Diagnostics.Process;
 
 namespace PowerArm.Extension.Commands
 {
     /// <summary>
     /// Command handler
-    /// Courtesy of https://github.com/ilmax/vs-restart/
     /// </summary>
-    internal sealed class RestartAsAdmin
+    internal sealed class InstallLocalIIS
     {
         /// <summary>
         /// Command ID.
         /// </summary>
-        public const int CommandId = 0x0100;
+        public const int CommandId = 0x0400;
 
         public const int RadacodeId = 0x1021;
 
@@ -46,13 +38,13 @@ namespace PowerArm.Extension.Commands
         private ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RestartAsAdmin"/> class.
+        /// Initializes a new instance of the <see cref="InstallLocalIIS"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
-        private RestartAsAdmin(Package package, ILogger logger)
+        private InstallLocalIIS(Package package, ILogger logger)
         {
-            //_logger = logger;
+            _logger = logger;
 
             if (package == null)
             {
@@ -61,39 +53,30 @@ namespace PowerArm.Extension.Commands
 
             this.package = package;
 
-            dte = (package as PowerArmPackage).DTE;
-
-            statusbar = Package.GetGlobalService(typeof(SVsStatusbar)) as IVsStatusbar;
+            dte = Package.GetGlobalService(typeof(SDTE)) as DTE;
 
             OleMenuCommandService commandService = this.ServiceProvider.GetService(typeof(IMenuCommandService)) as OleMenuCommandService;
             if (commandService != null)
             {
-                var menuCommandId = new CommandID(CommandSet, CommandId);
-                var menuItem = new OleMenuCommand(this.MenuItemCallback, menuCommandId);
+                var menuCommandID = new CommandID(CommandSet, CommandId);
+                var menuItem = new OleMenuCommand(this.MenuItemCallback, menuCommandID);
+
                 menuItem.BeforeQueryStatus += MenuItemOnBeforeQueryStatus;
-
-                if (ElevationChecker.CanCheckElevation)
-                    menuItem.Visible = !ElevationChecker.IsElevated(Process.GetCurrentProcess().Handle);
-                else
-                    menuItem.Visible = true;
-
                 commandService.AddCommand(menuItem);
             }
         }
 
         private void MenuItemOnBeforeQueryStatus(object sender, EventArgs eventArgs)
         {
-            OleMenuCommand item = (OleMenuCommand)sender;
-            if (ElevationChecker.CanCheckElevation)
-            {
-                item.Visible = !ElevationChecker.IsElevated(Process.GetCurrentProcess().Handle);
-            }
+            var menuCommand = sender as OleMenuCommand;
+
+            menuCommand.Visible = !LocalIISChecker.LocalIISIsInstalled();
         }
 
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static RestartAsAdmin Instance
+        public static InstallLocalIIS Instance
         {
             get;
             private set;
@@ -116,8 +99,11 @@ namespace PowerArm.Extension.Commands
         /// <param name="package">Owner package, not null.</param>
         public static void Initialize(Package package, ILogger logger)
         {
-            Instance = new RestartAsAdmin(package, logger);
+            Instance = new InstallLocalIIS(package, logger);
         }
+
+        private const string CMD =
+            "/C START /w PKGMGR.EXE /l:log.etw /iu:IIS-WebServerRole;IIS-WebServer;IIS-CommonHttpFeatures;IIS-StaticContent;IIS-DefaultDocument;IIS-DirectoryBrowsing;IIS-HttpErrors;IIS-HttpRedirect;IIS-ApplicationDevelopment;IIS-ASP;IIS-CGI;IIS-ISAPIExtensions;IIS-ISAPIFilter;IIS-ServerSideIncludes;IIS-HealthAndDiagnostics;IIS-HttpLogging;IIS-LoggingLibraries;IIS-RequestMonitor;IIS-HttpTracing;IIS-CustomLogging;IIS-ODBCLogging;IIS-Security;IIS-BasicAuthentication;IIS-WindowsAuthentication;IIS-DigestAuthentication;IIS-ClientCertificateMappingAuthentication;IIS-IISCertificateMappingAuthentication;IIS-URLAuthorization;IIS-RequestFiltering;IIS-IPSecurity;IIS-Performance;IIS-HttpCompressionStatic;IIS-HttpCompressionDynamic;IIS-WebServerManagementTools;IIS-ManagementScriptingTools;IIS-IIS6ManagementCompatibility;IIS-Metabase;IIS-WMICompatibility;IIS-LegacyScripts;WAS-WindowsActivationService;WAS-ProcessModel;IIS-FTPServer;IIS-FTPSvc;IIS-FTPExtensibility;IIS-WebDAV;IIS-ASPNET;IIS-NetFxExtensibility;WAS-NetFxEnvironment;WAS-ConfigurationAPI;IIS-ManagementService;MicrosoftWindowsPowerShell";
 
         /// <summary>
         /// This function is the callback used to execute the command when the menu item is clicked.
@@ -128,19 +114,19 @@ namespace PowerArm.Extension.Commands
         /// <param name="e">Event args.</param>
         private void MenuItemCallback(object sender, EventArgs e)
         {
-            var dte = (package as PowerArmPackage).DTE;
+            statusbar.SetText("Installing Local IIS and additional components...");
 
-            if (dte == null)
-            {
-                // Show some error message and return
-                return;
-            }
+            System.Diagnostics.Process process = new System.Diagnostics.Process();
+            System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+            startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = CMD;
+            process.StartInfo = startInfo;
+            process.Start();
 
-            Debug.Assert(dte != null);
+            process.WaitForExit();
 
-            bool elevated = ((OleMenuCommand)sender).CommandID.ID == MenuId.RestartAsAdmin;
-
-            new VisualStuioRestarter().Restart(dte, elevated);
+            statusbar.SetText("IIS Installed...");
         }
     }
 }
